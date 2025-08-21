@@ -31,11 +31,36 @@ app.post("/send-otp", async (req, res) => {
 
     // Email options
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Your OTP Code",
-      text: `Your One-Time Password (OTP) is: ${otp}`,
-    };
+  from: process.env.EMAIL_USER,
+  to: email,
+  subject: "Your One-Time Password (OTP) Code",
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border-radius: 10px; background: #f9f9f9; border: 1px solid #ddd;">
+      <h2 style="text-align: center; color: #333;">Calumpit iRescue</h2>
+      <p style="font-size: 15px; color: #555;">
+        Dear User,
+      </p>
+      <p style="font-size: 15px; color: #555;">
+        You requested a one-time password (OTP) to verify your account. Please use the code below:
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <span style="font-size: 32px; font-weight: bold; color: #1E4D9B; letter-spacing: 4px;">
+          ${otp}
+        </span>
+      </div>
+      <p style="font-size: 14px; color: #555;">
+        This OTP is valid for <strong>5 minutes</strong>. Do not share this code with anyone.
+      </p>
+      <p style="font-size: 14px; color: #555;">
+        If you didn’t request this, please ignore this email or contact our support team.
+      </p>
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
+      <p style="font-size: 12px; color: #888; text-align: center;">
+        © ${new Date().getFullYear()} Calumpit iRescue. All rights reserved.
+      </p>
+    </div>
+  `,
+};
 
     // Send email
     await transporter.sendMail(mailOptions);
