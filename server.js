@@ -1,5 +1,10 @@
 // server.js
+<<<<<<< HEAD
 import express from "express";
+=======
+import express from "express"; 
+import bodyParser from "body-parser";
+>>>>>>> 12a9512a74dde6376220c8355c2e6456f03b164b
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
@@ -16,10 +21,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+<<<<<<< HEAD
 // In-memory OTP storage (better: use Redis/DB in production)
 const otpStore = new Map();
 
 // ✅ API route to send OTP (for Signup / Reset Password)
+=======
+// API route to send OTP (for Reset Password)
+>>>>>>> 12a9512a74dde6376220c8355c2e6456f03b164b
 app.post("/send-otp", async (req, res) => {
   try {
     const { email, purpose } = req.body;
@@ -28,17 +37,26 @@ app.post("/send-otp", async (req, res) => {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
+<<<<<<< HEAD
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
     // Save OTP in store with 5min expiry
     otpStore.set(email, { otp, expiry: Date.now() + 5 * 60 * 1000, purpose });
+=======
+    // ✅ Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+>>>>>>> 12a9512a74dde6376220c8355c2e6456f03b164b
 
     // Email options
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
+<<<<<<< HEAD
       subject: `Barangay iRescue - ${purpose === "signup" ? "Verification" : "Password Reset"} OTP Code`,
+=======
+      subject: "Barangay iRescue - Password Reset OTP Code",
+>>>>>>> 12a9512a74dde6376220c8355c2e6456f03b164b
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border-radius: 10px; background: #f9f9f9; border: 1px solid #ddd;">
           <h2 style="text-align: center; color: #333;">Barangay iRescue</h2>
@@ -46,7 +64,11 @@ app.post("/send-otp", async (req, res) => {
             Dear User,
           </p>
           <p style="font-size: 15px; color: #555;">
+<<<<<<< HEAD
             You requested ${purpose === "signup" ? "account verification" : "a password reset"}. Please use the one-time password (OTP) code below to proceed:
+=======
+            You requested to reset your password. Please use the one-time password (OTP) code below to proceed:
+>>>>>>> 12a9512a74dde6376220c8355c2e6456f03b164b
           </p>
           <div style="text-align: center; margin: 30px 0;">
             <span style="font-size: 32px; font-weight: bold; color: #1E4D9B; letter-spacing: 6px;">
@@ -57,7 +79,11 @@ app.post("/send-otp", async (req, res) => {
             This OTP is valid for <strong>5 minutes</strong>. Do not share this code with anyone.
           </p>
           <p style="font-size: 14px; color: #555;">
+<<<<<<< HEAD
             If you didn’t request this, please ignore this email or contact our support team immediately.
+=======
+            If you didn’t request a password reset, please ignore this email or contact our support team immediately.
+>>>>>>> 12a9512a74dde6376220c8355c2e6456f03b164b
           </p>
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
           <p style="font-size: 12px; color: #888; text-align: center;">
