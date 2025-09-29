@@ -32,7 +32,14 @@ app.post("/send-otp", async (req, res) => {
       }),
     });
 
-    if (!response.ok) throw new Error("EmailJS failed");
+if (!response.ok) {
+  const errorText = await response.text();
+  console.error("❌ EmailJS API Error:", errorText); // 🔍 print actual error
+  return res.status(500).json({
+    success: false,
+    message: "EmailJS failed: " + errorText,
+  });
+}
 
     res.json({ success: true, message: "OTP sent successfully" });
   } catch (err) {
