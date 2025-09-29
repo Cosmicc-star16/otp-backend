@@ -1,78 +1,56 @@
-// server.js
-import express from "express";
-import bodyParser from "body-parser";
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import express from "express";
+import fetch from "node-fetch"; // or axios
 
 dotenv.config();
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Gmail transporter (with App Password)
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER, // Gmail address
-    pass: process.env.EMAIL_PASS, // Gmail App Password
-  },
-});
+const otpStore = new Map();
 
-// API route to send OTP
 app.post("/send-otp", async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, purpose } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: "Email is required" });
 
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    otpStore.set(email, { otp, expiry: Date.now() + 5 * 60 * 1000, purpose });
 
-    // Generate 4-digit OTP
-    const otp = Math.floor(1000 + Math.random() * 9000);
+    // Call EmailJS REST API
+    const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        service_id: process.env.EMAILJS_SERVICE_ID,
+        template_id: process.env.EMAILJS_TEMPLATE_ID,
+        user_id: process.env.EMAILJS_PUBLIC_KEY,
+        template_params: {
+          to_email: email,
+          otp_code: otp,
+          purpose: purpose,
+        },
+      }),
+    });
 
-    // Email options
-    const mailOptions = {
-  from: process.env.EMAIL_USER,
-  to: email,
-  subject: "Your One-Time Password (OTP) Code",
-  html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border-radius: 10px; background: #f9f9f9; border: 1px solid #ddd;">
-      <h2 style="text-align: center; color: #333;">Calumpit iRescue</h2>
-      <p style="font-size: 15px; color: #555;">
-        Dear User,
-      </p>
-      <p style="font-size: 15px; color: #555;">
-        You requested a one-time password (OTP) to verify your account. Please use the code below:
-      </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <span style="font-size: 32px; font-weight: bold; color: #1E4D9B; letter-spacing: 4px;">
-          ${otp}
-        </span>
-      </div>
-      <p style="font-size: 14px; color: #555;">
-        This OTP is valid for <strong>5 minutes</strong>. Do not share this code with anyone.
-      </p>
-      <p style="font-size: 14px; color: #555;">
-        If you didn’t request this, please ignore this email or contact our support team.
-      </p>
-      <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
-      <p style="font-size: 12px; color: #888; text-align: center;">
-        © ${new Date().getFullYear()} Calumpit iRescue. All rights reserved.
-      </p>
-    </div>
-  `,
-};
+    if (!response.ok) throw new Error("EmailJS failed");
 
-    // Send email
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, otp }); // ⚠️ in production, wag i-send OTP pabalik
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to send OTP" });
+    res.json({ success: true, message: "OTP sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to send OTP" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.post("/verify-otp", (req, res) => {
+  const { email, otp } = req.body;
+  const record = otpStore.get(email);
+  if (!record) return res.status(400).json({ success: false, message: "No OTP found" });
+  if (Date.now() > record.expiry) return res.status(400).json({ success: false, message: "OTP expired" });
+  if (String(record.otp) !== String(otp)) return res.status(400).json({ success: false, message: "Invalid OTP" });
+
+  otpStore.delete(email);
+  res.json({ success: true, message: "OTP verified" });
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
