@@ -25,10 +25,10 @@ app.post("/send-otp", async (req, res) => {
         template_id: process.env.EMAILJS_TEMPLATE_ID,
         user_id: process.env.EMAILJS_PUBLIC_KEY,
         template_params: {
-          to_email: email,
-          otp_code: otp,
-          purpose: purpose,
-        },
+        email: email,        // match {{email}}
+        passcode: otp,       // match {{passcode}}
+        time: new Date().toLocaleTimeString(), // optional, para sa {{time}}
+      },
       }),
     });
 
