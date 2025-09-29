@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
-import fetch from "node-fetch"; // if Node 18+, you can remove this (native fetch na)
+import fetch from "node-fetch"; // if Node 18+, native fetch is built-in
 
 dotenv.config();
 const app = express();
@@ -24,7 +24,7 @@ app.post("/send-otp", async (req, res) => {
     let subject = "Your OTP Code";
     let text = `Your OTP is ${otp}. It will expire in 5 minutes.`;
 
-    if (purpose === "verification") {
+    if (purpose === "verification" || purpose === "signup" || purpose === "google-signup") {
       subject = "Verify Your Email";
       text = `Use this OTP to verify your email: ${otp}. This code will expire in 5 minutes.`;
     } else if (purpose === "reset-password") {
@@ -47,7 +47,28 @@ app.post("/send-otp", async (req, res) => {
         sender: { name: "iRescue OTP", email: process.env.SENDER_EMAIL },
         to: [{ email }],
         subject,
-        textContent: text,
+        textContent: text, // fallback plain text
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f7f7f7;">
+            <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+              <h2 style="color: #2a7ae2; text-align:center;">${subject}</h2>
+              <p style="font-size: 16px; color: #333; text-align:center;">
+                ${text}
+              </p>
+              <div style="margin: 20px 0; text-align:center;">
+                <span style="font-size: 28px; font-weight: bold; letter-spacing: 3px; color: #2a7ae2;">
+                  ${otp}
+                </span>
+              </div>
+              <p style="font-size: 14px; color: #777; text-align:center;">
+                If you didn’t request this, you can ignore this email.
+              </p>
+              <p style="font-size: 12px; color: #aaa; text-align:center; margin-top: 20px;">
+                © ${new Date().getFullYear()} iRescue
+              </p>
+            </div>
+          </div>
+        `,
       }),
     });
 
