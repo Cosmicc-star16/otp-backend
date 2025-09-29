@@ -44,7 +44,7 @@ app.post("/send-otp", async (req, res) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "iRescue OTP", email: process.env.SENDER_EMAIL },
+        sender: { name: "Barangay iRescue OTP", email: process.env.SENDER_EMAIL },
         to: [{ email }],
         subject,
         textContent: text, // fallback plain text
@@ -64,7 +64,7 @@ app.post("/send-otp", async (req, res) => {
                 If you didn’t request this, you can ignore this email.
               </p>
               <p style="font-size: 12px; color: #aaa; text-align:center; margin-top: 20px;">
-                © ${new Date().getFullYear()} iRescue
+                © ${new Date().getFullYear()} Barangay iRescue
               </p>
             </div>
           </div>
